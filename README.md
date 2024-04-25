@@ -27,7 +27,7 @@ The "YouTube Data Harvesting and Warehousing using SQL and Streamlit" project ai
 
 1. **Setup**: Install the required libraries using `pip install -r requirements.txt`.
 2. **Configuration**: Add your YouTube Data API key to `config.py`.
-3. **Run**: Start the Streamlit app using `streamlit run youtubepj.py`.
+3. **Run**: Start the Streamlit app using `streamlit run project.py`.
 
 By leveraging these technologies and features, the project streamlines the process of harvesting, warehousing, and querying YouTube data, empowering users with valuable insights and analysis capabilities.
 
