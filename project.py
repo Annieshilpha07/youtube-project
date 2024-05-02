@@ -18,9 +18,7 @@ def api_connect():
 #storing the function another variable
 youtube=api_connect() 
 
-# channel_id=('UCNmCXVpvngw5wNdRBZsfDaA')
-
-#Channel Id Creation
+# to get Channel Id
 def get_channel_data(channel_id):
     request = youtube.channels().list(
     part="snippet,contentDetails,statistics,status",
@@ -38,26 +36,24 @@ def get_channel_data(channel_id):
                 "channel_sub":item['statistics']['subscriberCount'],
                 "channel_view":item['statistics']['viewCount'],
                 "channel_video":item['statistics']['videoCount'],
-                "channel_status":item['status']['privacyStatus'] # Channel Type?
+                "channel_status":item['status']['privacyStatus'] 
             }
         channel_Data.append(data)
     return channel_Data
 
-#to get Video ID's:
+# get Video ID's
 def get_video_Id_data(channel_id):
     video_ids=[]
     try:
-        response= youtube.channels().list(part='contentDetails',
-                                        id=channel_id).execute()
+        response= youtube.channels().list(part='contentDetails', id=channel_id).execute()
         if 'items' in response:
             channel_playlistid=response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
             next_page_token=None
-            while True:    #to get the all video
-                response1 = youtube.playlistItems().list( 
-                        part='snippet',
-                        playlistId=channel_playlistid, 
-                        maxResults=50,
-                        pageToken=next_page_token).execute()
+            while True:    #to get all video
+                response1 = youtube.playlistItems().list( part='snippet',
+                                                         playlistId=channel_playlistid,
+                                                         maxResults=50,
+                                                         pageToken=next_page_token).execute()
                 for i in response1.get('items',[]):
                     video_ids.append(i['snippet']['resourceId']['videoId']) #(_)
                 next_page_token= response1.get('nextPageToken')  #Get uses to get the id,if not None
@@ -69,7 +65,7 @@ def get_video_Id_data(channel_id):
         print(f"An error occurred: {e}")
     return video_ids
 
-#get_video_Details
+# get_video_Details
 def get_video_data(video_ids):
     video_data=[]
     for video_id in video_ids:
@@ -99,7 +95,7 @@ def get_video_data(video_ids):
             video_data.append(data)
     return video_data
 
-#to get comment details
+# get comment details
 def get_comment_data(video_ids):
     Comment_data=[]
     comment_count=0
@@ -109,7 +105,7 @@ def get_comment_data(video_ids):
                                                 videoId=video_id,
                                                 maxResults=50)
             response=request.execute()
-            for item in response['items']:      #item=variablename
+            for item in response['items']:
                 data={'Comment_id':item['snippet']['topLevelComment']['id'],
                         'Video_Id':item['snippet']['topLevelComment']['snippet']['videoId'],
                         'Comment_text':item['snippet']['topLevelComment']['snippet']['textDisplay'],
@@ -120,13 +116,11 @@ def get_comment_data(video_ids):
                 comment_count += 1
                 if comment_count >= 150:
                     break
-            if comment_count >= 150:
-                break
     except:
         pass
     return Comment_data
 
-#Get Playlist details
+# get Playlist details
 def get_playlist_data(channel_id):
     next_page_token = None
     all_data = []
@@ -157,7 +151,7 @@ def get_playlist_data(channel_id):
         print(f"An error occurred while fetching the playlist details: {e}")
     return all_data
 
-# STREAMLIT Sidebar
+# STREAMLIT APP
 def Display_menu():
     st.sidebar.title(':rainbow[YOUTUBE DATA HARVESTING AND WAREHOUSING USING SQL AND STREAMLIT]')
     st.sidebar.header(':red[overview]', divider='rainbow')
@@ -167,7 +161,7 @@ st.title(":red[YouTube Data Harvesting and Warehousing]")
 st.write("Welcome to our Streamlit platform designed for the exciting task of harvesting and warehousing YouTube data. With Python scripting, seamless API integration, and powerful SQL capabilities, we bring you a comprehensive tool for data enthusiasts and analysts.")
 st.write("Start exploring now and uncover the insights hidden within the vast world of YouTube content!")
 
-#to get the user input:
+# Get user input for the YouTube Channel ID
 channel_ids = set()
 def get_channel_id():
     return st.text_input("# :red[Enter YouTube Channel ID:]")
@@ -186,9 +180,6 @@ channel=pd.DataFrame(channel_info)
 videos=pd.DataFrame(video_info)
 Comments=pd.DataFrame(com_info)
 playlist=pd.DataFrame(playlist_info)
-
-# Display a success message
-# st.success('Data collected successfully!')
 
 # Display the collected data
 st.subheader('CHANNEL DETAILS')
@@ -228,7 +219,7 @@ def channel_table():
         print('Creating channel table failed:', e)
 channel_table()
 
-#inserting Channel details
+# Inserting Channel details
 if channel_id:
     channel_ids.add(channel_id)
     st.success(f"Channel ID '{channel_id}' added to migration list.")
@@ -265,7 +256,7 @@ if channel_id:
 else:
     st.warning("Please enter a valid Channel ID before migrating to SQL.")
 
-#video -table creation for video in sql
+# Video table creation for video in SQL
 def video_table():
     try:
         query = '''create table if not exists videos_data(channel_name varchar(255),
@@ -288,7 +279,7 @@ def video_table():
         print("Created Video Table")
 video_table()
 
-# insert video Details
+# Insert video Details
 # Function to check if video exists in the database
 def video_exists(video_id):
     try:
@@ -299,9 +290,8 @@ def video_exists(video_id):
     except Exception as e:
         print("Error executing SQL query in video_exists:", e)
         return False  # incase of error
-####
 
-# insert video Details Video_ID
+# Insert video Details Video_ID
 try:
     for video_data in video_info:
         if not video_exists(video_data['Video_ID']):
@@ -332,8 +322,7 @@ try:
 except Exception as e:
     print("Error inserting records:", e)
 
-
-#playlist- table creation for playlist details
+# Playlist table creation for playlist details
 def playlist_table():
     try:
         query = '''create table if not exists playlist_data(Playlist_Id varchar(255),
@@ -347,7 +336,7 @@ def playlist_table():
         print('Creating playlist table failed:', e)
 playlist_table()
 
-#Inserting values to table
+#Inserting values to playlist table
 try:
     for playlist_detail in playlist_info:
         # Check if the playlist already exists in the table based on Playlist_Id
@@ -385,8 +374,7 @@ def comments_table():
         print("Creating channel table")
 comments_table()
 
-#Inserting values-Comment
-# Inserting values-Comment
+# Inserting values Comment
 def check_duplicate(comment_id):
     query = "SELECT COUNT(*) FROM comments_data WHERE Comment_id = %s"
     mycursor.execute(query, (comment_id,))
@@ -408,8 +396,8 @@ for comment_data in com_info:
             print("Error:", err)
     else:
         print("Duplicate comment found and skipped:", comment_data['Comment_id'])
-
-# Assuming mycursor is the cursor object for your database connection
+        
+# Fetching data from tables
 def fetch_channel_db():
     mycursor.execute("SELECT * FROM channel_data")
     data = mycursor.fetchall()
@@ -442,8 +430,7 @@ def fetch_comment_db():
     df4.drop_duplicates(subset=["Comment_id"], inplace=True)
     return df4
 
-#Streamlit_main
-#Streamlit_main
+# Streamlit main function
 def main():
     show_table = st.radio("# :green[Select the table for View:-]", ("CHANNEL", "PLAYLIST", "VIDEOS", "COMMENTS"))
     if show_table == "CHANNEL":
